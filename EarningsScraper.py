@@ -1,6 +1,6 @@
 import requests
 from lxml import html
-
+import time
 
 def scrapeTranscript(linkSuffix, filename):
     prefix = "https://seekingalpha.com"
@@ -13,16 +13,25 @@ def scrapeTranscript(linkSuffix, filename):
     fh = open(filename, "w")
     fh.write(text)
     fh.close()
-    
-    
 
-# pull the listing page for the earning transcripts
-page = requests.get("https://seekingalpha.com/earnings/earnings-call-transcripts")
-pageHtml = html.fromstring(page.content)
-anchors = pageHtml.xpath('//a[@class="dashboard-article-link"]')
+def scrapeListing(url):
+    page = requests.get(url)
+    pageHtml = html.fromstring(page.content)
+    anchors = pageHtml.xpath('//a[@class="dashboard-article-link"]')
 
-#a = anchors[0]
-for a in anchors:
-    suffixLink = a.attrib["href"]
-    filename = a.text + ".txt"
-    scrapeTranscript(suffixLink, filename)
+    #a = anchors[0]
+    for a in anchors:
+        suffixLink = a.attrib["href"]
+        filename = a.text + ".txt"
+        print("Getting {0}".format(suffixLink))
+        scrapeTranscript(suffixLink, filename)
+        time.sleep(5)
+    
+if __name__ == "__main__":
+    baseUrl = "https://seekingalpha.com/earnings/earnings-call-transcripts"
+    for i in range(1, 1001):
+        url = baseUrl
+        if i > 1:
+            url = baseUrl + "/{0}".format(i)
+        
+        scrapeListing(url)
